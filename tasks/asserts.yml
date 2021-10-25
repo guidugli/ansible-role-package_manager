@@ -1,0 +1,33 @@
+---
+##
+# This task file checks all the variables created to customize the
+# configuration of the packaging system and which packages to install
+# based on the features enabled for the system.
+##
+
+- name: Check if these package_management 'yes','no','true','false' values are invalid
+  assert:
+    quiet: yes
+    that:
+      - (lookup('vars', item) | lower) in ['true','false']
+    msg: "Invalid value for {{ item }}. Allowed values are 'yes', 'no', 'true', 'false'."
+  loop:
+    - pm_apk_upgrade_available
+    - pm_update_system
+    - pm_security_only
+    - pm_gpgcheck
+    - pm_disable_rhnsd
+
+- name: Check integer variables
+  assert:
+    quiet: yes
+    that:
+      - pm_cache_valid_time | int(-1) >= 0
+    msg: "Invalid integer value for pm_cache_valid_time"
+
+- name: Check if APT upgrade command is valid
+  assert:
+    quiet: yes
+    that:
+      - pm_apt_upgrade_command in ['dist','full','safe','yes']
+    msg: "Invalid value for upgrade_command. Valid values are 'dist','full','safe' and 'yes'"

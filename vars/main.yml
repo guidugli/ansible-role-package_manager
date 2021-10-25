@@ -1,0 +1,26 @@
+---
+# vars file for package_manager
+
+# Default value to be assigned for undefined integer variables
+# Zero is not desirable because it can be valid in some settings.
+int_default_value: -1
+
+# The variable below is used only to simplify package_management.install_packages and
+# package_management.remove_packages. Those are the actual variables used to install
+# or remove packages
+# These are packages suggested from CIS
+default_packages:
+  remove:
+    COMMON: ['cups', 'mcstrans', 'rpcbind', 'rsync', 'samba', 'squid', 'telnet', 'unbound',
+             'vsftdp', 'xinetd', 'yp-tools']
+    RedHat: ['avahi', 'bind', 'dhcp-server', 'dovecot', 'httpd', 'net-snmp', 'nfs-utils', 'openldap-clients',
+             'openldap-servers', 'rsync-daemon', 'setroubleshoot', 'telnet-server', 'tftp-server', 'ypbind', 'ypserv']
+    Debian: ['apache2', 'atftpd', 'avahi-daemon', 'bind9', 'dovecot-core', 'ftpd', 'fusecram', 'isc-dhcp-server',
+             'lsyncd', 'nfs-common', 'proftpd', 'pure-ftpd', 'pure-ftpd', 'slapd', 'snmpd', 'squashfuse',
+             'telnetd', 'tftpd', 'twoftpd', 'prelink']
+  install:
+    COMMON:
+    RedHat:
+    Debian:
+
+pkgmgr_redhat_conf: "{{ '/etc/yum.conf' if ansible_pkg_mgr == 'yum' else '/etc/dnf/dnf.conf' }}"

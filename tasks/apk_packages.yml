@@ -1,0 +1,30 @@
+---
+##
+# This file provides all tasks related to package management.
+# It starts by setting up some configuration on the package
+# management system itself.
+# It includes updating packages to latest version as well as
+# installing and removing software.
+##
+
+- name: Update cache
+  apk:
+    update_cache: yes
+  changed_when: false
+
+- name: Update all packages
+  apk:
+    upgrade: yes
+    available: "{{ pm_apk_upgrade_available }}"
+  when: pm_update_system
+  notify: reboot
+
+- name: Install packages
+  apk:
+    name: "{{ pm_install_packages }}"
+    state: present
+
+- name: Delete packages
+  apk:
+    name: "{{ pm_remove_packages }}"
+    state: absent

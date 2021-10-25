@@ -1,0 +1,54 @@
+---
+##
+# This file provides all tasks related to package management.
+# It starts by setting up some configuration on the package
+# management system itself.
+# It includes updating packages to latest version as well as
+# installing and removing software.
+##
+
+- name: Update cache
+  zypper:
+    update_cache: yes
+  changed_when: false
+
+- name: Update all packages
+  zypper:
+    name: '*'
+    state: latest
+  when: pm_update_system
+
+- name: Install packages
+  zypper:
+    name: "{{ pm_install_packages }}"
+    state: present
+
+- name: Delete packages
+  zypper:
+    name: "{{ pm_remove_packages }}"
+    state: absent
+
+# If file exists the return code is zero
+- name: Check if reboot is required
+  raw: "test -e /boot/do_purge_kernels"
+  failed_when: false
+  changed_when: false
+  register: pkgmgr_boot_required
+
+- name: display message if system needs reboot
+  debug:
+    msg: "System needs rebooting"
+  when: pkgmgr_boot_required.rc == 0
+
+- name: Reboot system
+  reboot:
+    msg: "Reboot initiated by Ansible for updates"
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: uptime
+  when:
+    - pm_reboot_after_update | bool
+    - pkgmgr_boot_required.rc == 0
+    - ansible_connection != "docker"

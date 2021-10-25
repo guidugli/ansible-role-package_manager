@@ -1,0 +1,51 @@
+---
+##
+# This file provides all tasks related to package management.
+# It starts by setting up some configuration on the package
+# management system itself.
+# It includes updating packages to latest version as well as
+# installing and removing software.
+##
+
+# Use the service module to disable the rhnsd service. If you want the machine
+#  to respond to queued services from Satellite, do not disable this.
+- name: Disable rhnsd
+  service:
+    name: rhnsd
+    enabled: no
+    state: stopped
+  ignore_errors: true  #Remove for RHEL
+  when: pm_disable_rhnsd and ansible_distribution != "Fedora"
+
+# GPGKeys are used to sign packages. Enabling them will mean that all packages
+#  from a given repo must be signed with the appropriate key
+- name: Ensure GPG check is enabled
+  block:
+
+    # Replace any instances of gpgcheck with a 1 after it to 'gpgcheck = 1'
+    - name: "Set gpgcheck to '1' on {{ pkgmgr_redhat_conf }} config file"
+      replace:
+        dest: "{{ pkgmgr_redhat_conf }}"
+        regexp: '^\s*gpgcheck\s*=\s*([^1]|[1]{2,})\s*$'
+        replace: "gpgcheck = 1"
+
+    # Find all files in /etc/yum.repos.d and add them to a list variable
+    - name: find all repo files in /etc/yum.repos.d/
+      find:
+        paths: "/etc/yum.repos.d"
+        patterns: "*.repo"
+      register: pkgmgr_yumrepos
+
+    # sets gpgcheck = 1 on all yum repositories
+    # Changes will happen only if gpgcheck is not already 1
+    - name: Set all repos gpgchecks to '1'
+      replace:
+        path: "{{ item.path }}"
+        regexp: '^\s*gpgcheck\s*=\s*([^1]|[1]{2,})\s*$'
+        replace: gpgcheck = 1
+      with_items: "{{ pkgmgr_yumrepos.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+      when: item.path not in (pm_gpgcheck_excludes | default([]))
+
+  when: pm_gpgcheck

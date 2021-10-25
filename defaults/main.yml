@@ -1,0 +1,46 @@
+---
+# defaults file for package_manager
+
+# update packages to latest version whenever this role is executed
+pm_update_system: yes
+
+# For APT only: can be dist, full, yes or safe
+pm_apt_upgrade_command: dist
+
+# If set to yes, during upgrade, prefer replacing or downgrading packages
+# (instead of holding them) if the currently installed package is no longer
+# available from any repository.
+pm_apk_upgrade_available: no
+
+# update cache if older than this variable value (in seconds)
+pm_cache_valid_time: 3600
+
+# apply only security updates (RedHat family only)
+pm_security_only: no
+
+# auto remove unneeded packages installed as dependencies
+pm_autoremove: yes
+
+# Force purging configuration files if package is removed (Debian family only)
+pm_purge: no
+
+# make all repositories to validate gpg signature (RedHat family only)
+pm_gpgcheck: yes
+
+# Do not disable the service if you plan on connecting to a Sattelite ((RedHat family only)
+pm_disable_rhnsd: yes
+
+# Packages to install
+pm_install_packages: "{{ default_packages['install']['COMMON'] |
+                     default([], true) + default_packages['install'][ansible_os_family] | default([], true) }}"
+
+# Packages to remove
+pm_remove_packages: "{{ default_packages['remove']['COMMON'] |
+                    default([], true) + default_packages['remove'][ansible_os_family] | default([], true) }}"
+
+# Should the system be rebooted after update?
+pm_reboot_after_update: no
+
+# RedHat family only: repositories to skip gpg check
+#  pm_gpgcheck_excludes:
+#    - /etc/yum.repos.d/virtio-win
