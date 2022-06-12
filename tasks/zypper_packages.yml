@@ -8,40 +8,40 @@
 ##
 
 - name: Update cache
-  zypper:
+  ansible.builtin.zypper:
     update_cache: yes
   changed_when: false
 
 - name: Update all packages
-  zypper:
+  ansible.builtin.zypper:
     name: '*'
     state: latest
   when: pm_update_system
 
 - name: Install packages
-  zypper:
+  ansible.builtin.zypper:
     name: "{{ pm_install_packages }}"
     state: present
 
 - name: Delete packages
-  zypper:
+  ansible.builtin.zypper:
     name: "{{ pm_remove_packages }}"
     state: absent
 
 # If file exists the return code is zero
 - name: Check if reboot is required
-  raw: "test -e /boot/do_purge_kernels"
+  ansible.builtin.raw: "test -e /boot/do_purge_kernels"
   failed_when: false
   changed_when: false
   register: pkgmgr_boot_required
 
 - name: display message if system needs reboot
-  debug:
+  ansible.builtin.debug:
     msg: "System needs rebooting"
   when: pkgmgr_boot_required.rc == 0
 
 - name: Reboot system
-  reboot:
+  ansible.builtin.reboot:
     msg: "Reboot initiated by Ansible for updates"
     connect_timeout: 5
     reboot_timeout: 300

@@ -19,45 +19,45 @@
 #    - pm_repositories_add | length > 0
 
 - name: Install dnf-utils
-  dnf:
+  ansible.builtin.dnf:
     name: dnf-utils
     state: present
 
 # Update the system with security packages using the system's package manager
 # Only update the system if the 'update_system' variable is set to true
 - name: Update packages
-  dnf:
+  ansible.builtin.dnf:
     name: "*"
     state: latest
     security: "{{ pm_security_only }}"
   when: pm_update_system
 
 - name: Install packages
-  dnf:
+  ansible.builtin.dnf:
     name: "{{ pm_install_packages }}"
     state: present
 
 - name: Delete unused packages
-  dnf:
+  ansible.builtin.dnf:
     name: "{{ pm_remove_packages }}"
     state: absent
 
 - name: Autoremove unneeded packages installed as dependencies
-  dnf:
+  ansible.builtin.dnf:
     autoremove: "{{ pm_autoremove }}"
 
 - name: Check if system needs a reboot
-  command: "needs-restarting -r"
+  ansible.builtin.command: "needs-restarting -r"
   failed_when: false
   changed_when: false
   register: pkgmgr_boot_required
 
 - name: Reboot Status
-  debug:
+  ansible.builtin.debug:
     msg: "System {{ 'needs' if pkgmgr_boot_required.rc != 0 else 'does not need' }} rebooting"
 
 - name: Reboot system
-  reboot:
+  ansible.builtin.reboot:
     msg: "Reboot initiated by Ansible for updates"
     connect_timeout: 5
     reboot_timeout: 300

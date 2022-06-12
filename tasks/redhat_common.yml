@@ -10,7 +10,7 @@
 # Use the service module to disable the rhnsd service. If you want the machine
 #  to respond to queued services from Satellite, do not disable this.
 - name: Disable rhnsd
-  service:
+  ansible.builtin.service:
     name: rhnsd
     enabled: no
     state: stopped
@@ -24,14 +24,14 @@
 
     # Replace any instances of gpgcheck with a 1 after it to 'gpgcheck = 1'
     - name: "Set gpgcheck to '1' on {{ pkgmgr_redhat_conf }} config file"
-      replace:
+      ansible.builtin.replace:
         dest: "{{ pkgmgr_redhat_conf }}"
         regexp: '^\s*gpgcheck\s*=\s*([^1]|[1]{2,})\s*$'
         replace: "gpgcheck = 1"
 
     # Find all files in /etc/yum.repos.d and add them to a list variable
     - name: find all repo files in /etc/yum.repos.d/
-      find:
+      ansible.builtin.find:
         paths: "/etc/yum.repos.d"
         patterns: "*.repo"
       register: pkgmgr_yumrepos
@@ -39,7 +39,7 @@
     # sets gpgcheck = 1 on all yum repositories
     # Changes will happen only if gpgcheck is not already 1
     - name: Set all repos gpgchecks to '1'
-      replace:
+      ansible.builtin.replace:
         path: "{{ item.path }}"
         regexp: '^\s*gpgcheck\s*=\s*([^1]|[1]{2,})\s*$'
         replace: gpgcheck = 1

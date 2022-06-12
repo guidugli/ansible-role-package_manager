@@ -8,23 +8,23 @@
 ##
 
 - name: Update cache
-  pacman:
+  ansible.builtin.pacman:
     update_cache: yes
   changed_when: false
 
 - name: Update all packages
-  pacman:
+  ansible.builtin.pacman:
     upgrade: yes
   when: pm_update_system
   notify: reboot
 
 - name: Install packages
-  apk:
+  ansible.builtin.apk:
     name: "{{ pm_install_packages }}"
     state: present
 
 - name: Delete packages
-  apk:
+  ansible.builtin.apk:
     name: "{{ pm_remove_packages }}"
     state: absent
     # Remove each target specified including all of their dependencies, provided that

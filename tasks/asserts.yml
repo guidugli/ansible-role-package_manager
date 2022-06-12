@@ -6,7 +6,7 @@
 ##
 
 - name: Check if these package_management 'yes','no','true','false' values are invalid
-  assert:
+  ansible.builtin.assert:
     quiet: yes
     that:
       - (lookup('vars', item) | lower) in ['true','false']
@@ -19,14 +19,14 @@
     - pm_disable_rhnsd
 
 - name: Check integer variables
-  assert:
+  ansible.builtin.assert:
     quiet: yes
     that:
       - pm_cache_valid_time | int(-1) >= 0
     msg: "Invalid integer value for pm_cache_valid_time"
 
 - name: Check if APT upgrade command is valid
-  assert:
+  ansible.builtin.assert:
     quiet: yes
     that:
       - pm_apt_upgrade_command in ['dist','full','safe','yes']

@@ -8,80 +8,80 @@
 ##
 
 - name: Update cache
-  apt:
+  ansible.builtin.apt:
     update_cache: yes
     cache_valid_time: "{{ pm_cache_valid_time }}"
 
 # Update the system with security packages using the system's package manager
 # Only update the system if the 'update_system' variable is set to true
 - name: Update packages
-  apt:
+  ansible.builtin.apt:
     upgrade: "{{ pm_apt_upgrade_command }}"
   when: pm_update_system
 
 - name: Install packages
-  apt:
+  ansible.builtin.apt:
     name: "{{ pm_install_packages }}"
     state: present
 
 - name: Install GNUPG2 package so apt-key command works
-  apt:
+  ansible.builtin.apt:
     name: gnupg2
     state: present
 
 - name: Delete unused packages
-  apt:
+  ansible.builtin.apt:
     name: "{{ pm_remove_packages }}"
     state: absent
     purge: "{{ pm_purge }}"
 
 - name: Autoremove unneeded packages installed as dependencies
-  apt:
+  ansible.builtin.apt:
     autoremove: yes
   when: pm_autoremove
 
 - name: Perform autoclean (remove useless files from cache)
-  apt:
+  ansible.builtin.apt:
     autoclean: yes
 
 - name: Run command to get apt package repositories
-  command: "/usr/bin/apt-cache policy"
+  ansible.builtin.command: "/usr/bin/apt-cache policy"
   register: pkgmgr_apt_package_repos
   changed_when: false
   failed_when: pkgmgr_apt_package_repos.rc != 0
 
 - name: Display package manager repositories (for manual review)
-  debug:
+  ansible.builtin.debug:
     msg:
       - "List of configured apt repositories (apt-cache policy):"
       - "{{ pkgmgr_apt_package_repos.stdout_lines }}"
 
 - name: Run command to get list of GPG keys
-  command: "/usr/bin/apt-key list"
+  ansible.builtin.command: "/usr/bin/apt-key list"
   register: result
   changed_when: false
   failed_when: result.rc != 0
 
 - name: Display package manager GPG Keys (for manual review)
-  debug:
+  ansible.builtin.debug:
     msg:
       - "List of configured keys (apt-key list):"
       - "{{ result.stdout_lines }}"
 
 # If file exists the return code is zero
 - name: Check if reboot is required
-  raw: "test -e /var/run/reboot-required"
+  ansible.builtin.raw: "test -e /var/run/reboot-required"
   failed_when: false
   changed_when: false
   register: pkgmgr_boot_required
 
 - name: System reboot message
-  debug:
+  ansible.builtin.debug:
     msg: "System needs rebooting"
   when: pkgmgr_boot_required.rc == 0
 
 - name: Reboot system
-  reboot:
+  ansible.builtin.reboot:
     msg: "Reboot initiated by Ansible for updates"
     connect_timeout: 5
     reboot_timeout: 300
