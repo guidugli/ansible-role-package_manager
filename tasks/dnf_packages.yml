@@ -10,7 +10,7 @@
 # Perform gpgcheck settings validation and other common
 # validations for yum and dnf
 - name: Import tasks to perform common dnf/yum verification
-  include_tasks: redhat_common.yml
+  ansible.builtin.include_tasks: redhat_common.yml
 
 #- name: Import tasks to add repositories
 #  include_tasks: dnf_repositories.yml

@@ -8,23 +8,23 @@
 ##
 
 - name: Update cache
-  ansible.builtin.zypper:
+  community.general.zypper:
     update_cache: yes
   changed_when: false
 
 - name: Update all packages
-  ansible.builtin.zypper:
+  community.general.zypper:
     name: '*'
     state: latest
   when: pm_update_system
 
 - name: Install packages
-  ansible.builtin.zypper:
+  community.general.zypper:
     name: "{{ pm_install_packages }}"
     state: present
 
 - name: Delete packages
-  ansible.builtin.zypper:
+  community.general.zypper:
     name: "{{ pm_remove_packages }}"
     state: absent
 
@@ -35,7 +35,7 @@
   changed_when: false
   register: pkgmgr_boot_required
 
-- name: display message if system needs reboot
+- name: Display message if system needs reboot
   ansible.builtin.debug:
     msg: "System needs rebooting"
   when: pkgmgr_boot_required.rc == 0

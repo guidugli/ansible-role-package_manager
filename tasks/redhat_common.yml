@@ -31,7 +31,7 @@
         replace: "gpgcheck = 1"
 
     # Find all files in /etc/yum.repos.d and add them to a list variable
-    - name: find all repo files in /etc/yum.repos.d/
+    - name: Find all repo files in /etc/yum.repos.d/
       ansible.builtin.find:
         paths: "/etc/yum.repos.d"
         patterns: "*.repo"
