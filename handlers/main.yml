@@ -1,7 +1,7 @@
 ---
 # handlers file for package_manager
 
-- name: reboot
+- name: Reboot
   ansible.builtin.reboot:
     msg: "Reboot initiated by Ansible for updates"
     connect_timeout: 5

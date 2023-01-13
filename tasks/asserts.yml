@@ -9,7 +9,7 @@
   ansible.builtin.assert:
     quiet: yes
     that:
-      - (lookup('vars', item) | lower) in ['true','false']
+      - (lookup('vars', item) | lower) in ['true', 'false']
     msg: "Invalid value for {{ item }}. Allowed values are 'yes', 'no', 'true', 'false'."
   loop:
     - pm_apk_upgrade_available
@@ -29,5 +29,5 @@
   ansible.builtin.assert:
     quiet: yes
     that:
-      - pm_apt_upgrade_command in ['dist','full','safe','yes']
+      - pm_apt_upgrade_command in ['dist', 'full', 'safe', 'yes']
     msg: "Invalid value for upgrade_command. Valid values are 'dist','full','safe' and 'yes'"

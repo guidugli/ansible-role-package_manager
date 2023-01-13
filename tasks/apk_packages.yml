@@ -17,7 +17,7 @@
     upgrade: yes
     available: "{{ pm_apk_upgrade_available }}"
   when: pm_update_system
-  notify: reboot
+  notify: Reboot
 
 - name: Install packages
   ansible.builtin.apk:

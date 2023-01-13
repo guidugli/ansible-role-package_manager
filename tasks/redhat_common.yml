@@ -20,6 +20,7 @@
 # GPGKeys are used to sign packages. Enabling them will mean that all packages
 #  from a given repo must be signed with the appropriate key
 - name: Ensure GPG check is enabled
+  when: pm_gpgcheck
   block:
 
     # Replace any instances of gpgcheck with a 1 after it to 'gpgcheck = 1'
@@ -47,5 +48,3 @@
       loop_control:
         label: "{{ item.path }}"
       when: item.path not in (pm_gpgcheck_excludes | default([]))
-
-  when: pm_gpgcheck
