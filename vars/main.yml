@@ -12,12 +12,14 @@ int_default_value: -1
 default_packages:
   remove:
     COMMON: ['cups', 'mcstrans', 'rpcbind', 'rsync', 'samba', 'squid', 'telnet', 'unbound',
-             'vsftdp', 'xinetd', 'yp-tools']
+             'vsftdp', 'xinetd', 'yp-tools', 'nginx', 'dnsmasq', 'ftp']
     RedHat: ['avahi', 'bind', 'dhcp-server', 'dovecot', 'httpd', 'net-snmp', 'nfs-utils', 'openldap-clients',
-             'openldap-servers', 'rsync-daemon', 'setroubleshoot', 'telnet-server', 'tftp-server', 'ypbind', 'ypserv']
-    Debian: ['apache2', 'atftpd', 'avahi-daemon', 'bind9', 'dovecot-core', 'ftpd', 'fusecram', 'isc-dhcp-server',
+             'openldap-servers', 'rsync-daemon', 'setroubleshoot', 'telnet-server', 'tftp-server', 'ypbind',
+             'ypserv', 'cyrus-imapd']
+    Debian: ['apache2', 'atftpd', 'avahi-daemon', 'bind9', 'dovecot-imapd', 'ftpd', 'fusecram', 'isc-dhcp-server',
              'lsyncd', 'nfs-common', 'proftpd', 'pure-ftpd', 'pure-ftpd', 'slapd', 'snmpd', 'squashfuse',
-             'telnetd', 'tftpd', 'twoftpd', 'prelink']
+             'telnetd', 'tftpd', 'twoftpd', 'prelink', 'apport', 'nfs-kernel-server', 'dovecot-pop3d', 'nis',
+             'rsh-client', 'talk', 'ldap-utils']
   install:
     COMMON:
     RedHat:

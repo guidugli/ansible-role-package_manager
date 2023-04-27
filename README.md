@@ -57,7 +57,7 @@ Packages to install. Default is no packages to install. Update this variable to 
     pm_remove_packages: "{{ default_packages['remove']['COMMON'] |
                         default([], true) + default_packages['remove'][ansible_os_family] | default([], true) }}"
 
-Packages to remove: default list is based on CIS recommendations of software to uninstall if not used. Check `vars/main.yml` for the list of packages of each operating system.
+Packages to remove: default list is based on CIS recommendations of software to uninstall if not used. Check `vars/main.yml` for the list of packages of each operating system. By default it will remove specialized software that may run on a server like samba, nfs, http server, etc, since most installation don´t use them, and they may act as a vector for vulnerabilities. Ensure you review and adjust the list on each system.
 
     pm_reboot_after_update: no
 
