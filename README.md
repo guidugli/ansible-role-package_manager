@@ -1,4 +1,4 @@
-Ansible Role: packge_manager
+Ansible Role: package_manager
 =========
 
 An Ansible Role that configure package management software on RHEL/CentOS, Fedora and Debian/Ubuntu. Also install and remove software according to configuration.
