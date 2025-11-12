@@ -12,15 +12,15 @@ galaxy_info:
   platforms:
     - name: Fedora
       versions:
+        - '43'
         - '42'
-        - '40'
     - name: Ubuntu
       versions:
         - noble
         - jammy
     - name: Debian
       versions:
+        - trixie
         - bookworm
-        - bullseye
 
   galaxy_tags: ['package', 'manager', 'install', 'software', 'apt', 'yum', 'dnf']
