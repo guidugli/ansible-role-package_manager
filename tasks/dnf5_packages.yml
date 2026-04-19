@@ -36,11 +36,13 @@
   ansible.builtin.dnf:
     name: "{{ pm_install_packages }}"
     state: present
+  when: pm_install_packages is defined and pm_install_packages | length > 0
 
 - name: Delete unused packages
   ansible.builtin.dnf:
     name: "{{ pm_remove_packages }}"
     state: absent
+  when: pm_remove_packages is defined and pm_remove_packages | length > 0
 
 - name: Autoremove unneeded packages installed as dependencies
   ansible.builtin.dnf:

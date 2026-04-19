@@ -22,6 +22,7 @@
   community.general.apk:
     name: "{{ pm_install_packages }}"
     state: present
+  when: pm_install_packages is defiend and pm_install_packages | length > 0
 
 - name: Delete packages
   community.general.apk:
@@ -31,3 +32,4 @@
     # (A) they are not required by other packages; and
     # (B) they were not explicitly installed by the user.
     extra_args: "{{ '--recursive' if pm_autoremove else '' }}"
+  when: pm_remove_packages is defined and pm_remove_packages | length > 0
