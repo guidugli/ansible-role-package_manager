@@ -12,12 +12,6 @@
 - name: Import tasks to perform common dnf/yum verification
   ansible.builtin.include_tasks: redhat_common.yml
 
-#- name: Import tasks to add repositories
-#  include_tasks: dnf_repositories.yml
-#  when:
-#    - pm_repositories_add is defined
-#    - pm_repositories_add | length > 0
-
 - name: Install dnf-utils
   ansible.builtin.dnf:
     name: dnf-utils

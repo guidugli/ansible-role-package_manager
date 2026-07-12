@@ -1,0 +1,5 @@
+---
+- name: Verify audit role
+  hosts: all
+  gather_facts: true
+  tasks:

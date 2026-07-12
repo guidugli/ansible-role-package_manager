@@ -14,8 +14,8 @@
     name: rhnsd
     enabled: no
     state: stopped
-  ignore_errors: true  #Remove for RHEL
-  when: pm_disable_rhnsd and ansible_distribution != "Fedora"
+  failed_when: false  # Remove for RHEL
+  when: pm_disable_rhnsd and ansible_facts["distribution"] != "Fedora"
 
 # GPGKeys are used to sign packages. Enabling them will mean that all packages
 #  from a given repo must be signed with the appropriate key

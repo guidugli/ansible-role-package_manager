@@ -32,11 +32,11 @@ pm_disable_rhnsd: yes
 
 # Packages to install
 pm_install_packages: "{{ default_packages['install']['COMMON'] |
-                     default([], true) + default_packages['install'][ansible_os_family] | default([], true) }}"
+                     default([], true) + default_packages['install'][ansible_facts['os_family']] | default([], true) }}"
 
 # Packages to remove
 pm_remove_packages: "{{ default_packages['remove']['COMMON'] |
-                    default([], true) + default_packages['remove'][ansible_os_family] | default([], true) }}"
+                    default([], true) + default_packages['remove'][ansible_facts['os_family']] | default([], true) }}"
 
 # Should the system be rebooted after update?
 pm_reboot_after_update: no

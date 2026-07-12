@@ -1,6 +1,7 @@
 ---
-- name: Test Playbook
-  hosts: localhost
-  remote_user: root
+- name: Converge
+  hosts: all
+  gather_facts: true
+  become: false
   roles:
     - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"

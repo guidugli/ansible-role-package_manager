@@ -7,10 +7,14 @@
 # installing and removing software.
 ##
 
-- name: Update cache
+- name: Refresh apt cache
   ansible.builtin.apt:
-    update_cache: yes
-    cache_valid_time: "{{ pm_cache_valid_time }}"
+    update_cache: true
+  when: ansible_facts['pkg_mgr'] == 'apt'
+  changed_when: false
+  tags:
+    - package_manager
+    - install
 
 # Update the system with security packages using the system's package manager
 # Only update the system if the 'update_system' variable is set to true
@@ -58,17 +62,25 @@
       - "List of configured apt repositories (apt-cache policy):"
       - "{{ pkgmgr_apt_package_repos.stdout_lines }}"
 
-- name: Run command to get list of GPG keys
-  ansible.builtin.command: "/usr/bin/apt-key list"
-  register: result
-  changed_when: false
-  failed_when: result.rc != 0
+- name: Find APT keyrings
+  ansible.builtin.find:
+    paths:
+      - /etc/apt/keyrings
+      - /usr/share/keyrings
+      - /etc/apt/trusted.gpg.d
+    patterns:
+      - "*.gpg"
+      - "*.asc"
+  register: apt_keyrings
+  failed_when: false
 
-- name: Display package manager GPG Keys (for manual review)
-  ansible.builtin.debug:
-    msg:
-      - "List of configured keys (apt-key list):"
-      - "{{ result.stdout_lines }}"
+- name: Display key fingerprints (for manual review)
+  ansible.builtin.command:
+    cmd: "gpg --show-keys --with-fingerprint {{ item.path }}"
+  loop: "{{ apt_keyrings.files }}"
+  register: key_details
+  changed_when: false
+  failed_when: false
 
 # If file exists the return code is zero
 - name: Check if reboot is required

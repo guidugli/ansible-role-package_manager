@@ -25,4 +25,4 @@ default_packages:
     RedHat:
     Debian:
 
-pkgmgr_redhat_conf: "{{ '/etc/yum.conf' if ansible_pkg_mgr == 'yum' else '/etc/dnf/dnf.conf' }}"
+pkgmgr_redhat_conf: "{{ '/etc/yum.conf' if ansible_facts['pkg_mgr'] == 'yum' else '/etc/dnf/dnf.conf' }}"

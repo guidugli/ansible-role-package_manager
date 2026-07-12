@@ -1,10 +1,35 @@
 ---
-skip_list:
-  - package-latest
-  - ignore-errors
-  - args[module]
-  - name[template]
+# ansible-lint configuration aligned with repository linting standards.
+
+profile: production
 
 exclude_paths:
-  - .cache/  # implicit unless exclude_paths is defined in config
-  - .github/
+  - .git/
+  - .venv/
+  - .molecule/
+  - .github/stale.yml
+  - .travis.yml
+  - molecule/default/inventory/
+  - molecule/systemd/inventory/
+  - molecule/shared/vars.yml
+
+skip_list:
+  - package-latest
+  - name[template]
+
+warn_list:
+  - experimental
+  - fqcn[deep]
+
+verbosity: 1
+
+mock_modules: []
+mock_roles: []
+loop_var_prefix: '^(__|{role}_)?[a-z_][a-z0-9_]*$'
+var_naming_pattern: '^[a-z_][a-z0-9_]*$'
+
+enable_list:
+  - yaml
+  - args
+
+offline: true
