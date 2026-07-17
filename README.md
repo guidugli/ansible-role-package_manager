@@ -1,5 +1,5 @@
 [![CI](https://github.com/guidugli/ansible-role-package_manager/actions/workflows/CI.yml/badge.svg)](https://github.com/guidugli/ansible-role-package_manager/actions/workflows/CI.yml)
-[![Release](https://img.shields.io/github/v/release/guidugli/ansible-role-package_manager?display_name=tag&sort=semver)](https://github.com/guidugli/ansible-role-package_manager/releases)
+[![Release](https://img.shields.io/github/v/tag/guidugli/ansible-role-package_manager?sort=semver)](https://github.com/guidugli/ansible-role-package_manager/tags)
 [![Galaxy](https://img.shields.io/badge/galaxy-guidugli.package_manager-blue.svg)](https://galaxy.ansible.com/ui/standalone/roles/guidugli/package_manager/)
 [![License](https://img.shields.io/github/license/guidugli/ansible-role-package_manager)](LICENSE)
 
