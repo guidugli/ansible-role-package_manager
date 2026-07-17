@@ -27,7 +27,7 @@ galaxy_info:
         - "bookworm"
   galaxy_tags:
     - packages
-    - package-management
+    - management
     - apt
     - dnf
     - yum
