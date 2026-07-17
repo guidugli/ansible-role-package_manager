@@ -9,7 +9,7 @@
         state: absent
       loop: "{{ groups.get('molecule', []) }}"
 
-- name: Clear Molecule instance config (cleanup for molecule list/login)
+- name: Clear Molecule instance config
   hosts: localhost
   gather_facts: false
   vars:

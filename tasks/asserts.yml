@@ -1,33 +1,39 @@
 ---
-##
-# This task file checks all the variables created to customize the
-# configuration of the packaging system and which packages to install
-# based on the features enabled for the system.
-##
-
-- name: Check if these package_management 'yes','no','true','false' values are invalid
+- name: Check boolean package manager values
   ansible.builtin.assert:
-    quiet: yes
+    quiet: true
     that:
-      - (lookup('vars', item) | lower) in ['true', 'false']
-    msg: "Invalid value for {{ item }}. Allowed values are 'yes', 'no', 'true', 'false'."
+      - lookup('vars', item) | type_debug == 'bool'
+    msg: "Invalid value for {{ item }}. Use a boolean value."
   loop:
     - pm_apk_upgrade_available
     - pm_update_system
     - pm_security_only
     - pm_gpgcheck
     - pm_disable_rhnsd
+    - pm_autoremove
+    - pm_purge
+    - pm_reboot_after_update
+  tags:
+    - package_manager
+    - validate
 
 - name: Check integer variables
   ansible.builtin.assert:
-    quiet: yes
+    quiet: true
     that:
       - pm_cache_valid_time | int(-1) >= 0
-    msg: "Invalid integer value for pm_cache_valid_time"
+    msg: Invalid integer value for pm_cache_valid_time
+  tags:
+    - package_manager
+    - validate
 
 - name: Check if APT upgrade command is valid
   ansible.builtin.assert:
-    quiet: yes
+    quiet: true
     that:
       - pm_apt_upgrade_command in ['dist', 'full', 'safe', 'yes']
-    msg: "Invalid value for upgrade_command. Valid values are 'dist','full','safe' and 'yes'"
+    msg: "Invalid value for pm_apt_upgrade_command. Valid values are 'dist', 'full', 'safe', and 'yes'."
+  tags:
+    - package_manager
+    - validate

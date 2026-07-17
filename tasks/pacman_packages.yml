@@ -1,35 +1,36 @@
 ---
-##
-# This file provides all tasks related to package management.
-# It starts by setting up some configuration on the package
-# management system itself.
-# It includes updating packages to latest version as well as
-# installing and removing software.
-##
-
-- name: Update cache
+- name: Update pacman cache
   community.general.pacman:
-    update_cache: yes
+    update_cache: true
   changed_when: false
+  tags:
+    - package_manager
+    - install
 
-- name: Update all packages
+- name: Update all pacman packages
   community.general.pacman:
-    upgrade: yes
+    upgrade: true
   when: pm_update_system
   notify: Reboot
+  tags:
+    - package_manager
+    - install
 
-- name: Install packages
-  community.general.apk:
+- name: Install pacman packages
+  community.general.pacman:
     name: "{{ pm_install_packages }}"
     state: present
-  when: pm_install_packages is defiend and pm_install_packages | length > 0
+  when: pm_install_packages | length > 0
+  tags:
+    - package_manager
+    - install
 
-- name: Delete packages
-  community.general.apk:
+- name: Delete pacman packages
+  community.general.pacman:
     name: "{{ pm_remove_packages }}"
     state: absent
-    # Remove each target specified including all of their dependencies, provided that
-    # (A) they are not required by other packages; and
-    # (B) they were not explicitly installed by the user.
     extra_args: "{{ '--recursive' if pm_autoremove else '' }}"
-  when: pm_remove_packages is defined and pm_remove_packages | length > 0
+  when: pm_remove_packages | length > 0
+  tags:
+    - package_manager
+    - install

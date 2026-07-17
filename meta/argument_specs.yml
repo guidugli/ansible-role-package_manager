@@ -1,0 +1,63 @@
+---
+argument_specs:
+  main:
+    short_description: Configure package management.
+    description:
+      - Validates package manager options, updates package metadata and packages, and installs or removes packages.
+    options:
+      pm_update_system:
+        type: bool
+        default: true
+        description: Update installed packages according to the platform package manager.
+      pm_apt_upgrade_command:
+        type: str
+        default: dist
+        choices: [dist, full, safe, "yes"]
+        description: Upgrade mode used by apt-based systems.
+      pm_apk_upgrade_available:
+        type: bool
+        default: false
+        description: Allow apk to replace or downgrade packages when the installed package is unavailable.
+      pm_cache_valid_time:
+        type: int
+        default: 3600
+        description: Package metadata cache validity, in seconds, for package managers that support it.
+      pm_security_only:
+        type: bool
+        default: false
+        description: Apply security updates only on RedHat-family package managers.
+      pm_autoremove:
+        type: bool
+        default: true
+        description: Remove packages that were installed as dependencies and are no longer required.
+      pm_purge:
+        type: bool
+        default: false
+        description: Purge package configuration files during Debian-family package removal.
+      pm_gpgcheck:
+        type: bool
+        default: true
+        description: Enforce GPG signature checking for RedHat-family repositories.
+      pm_disable_rhnsd:
+        type: bool
+        default: true
+        description: Stop and disable rhnsd on supported RedHat-family hosts when present.
+      pm_gpgcheck_excludes:
+        type: list
+        elements: str
+        default: []
+        description: RedHat-family repository files excluded from automatic gpgcheck enforcement.
+      pm_install_packages:
+        type: list
+        elements: str
+        default: []
+        description: Packages to install. Defaults are derived by platform from vars/main.yml.
+      pm_remove_packages:
+        type: list
+        elements: str
+        default: []
+        description: Packages to remove. Defaults are derived by platform from vars/main.yml.
+      pm_reboot_after_update:
+        type: bool
+        default: false
+        description: Reboot when the platform indicates a reboot is required after updates.

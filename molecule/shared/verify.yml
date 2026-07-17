@@ -1,5 +1,21 @@
 ---
-- name: Verify audit role
+- name: Verify package_manager role
   hosts: all
   gather_facts: true
   tasks:
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+        manager: auto
+      tags:
+        - package_manager
+        - validate
+
+    - name: Verify package facts were collected
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.packages is mapping
+        fail_msg: Package facts were not collected.
+        quiet: true
+      tags:
+        - package_manager
+        - validate

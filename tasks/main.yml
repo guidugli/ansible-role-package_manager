@@ -3,11 +3,12 @@
 
 - name: Check package system variables
   ansible.builtin.include_tasks: asserts.yml
+  tags:
+    - package_manager
+    - validate
 
-- name: Start configuration
-  block:
-
-    # RedHat and Debian system are too different in regards of
-    # package management, so keep a task file for each
-    - name: Perform package system tasks
-      ansible.builtin.include_tasks: "{{ ansible_pkg_mgr }}_packages.yml"
+- name: Perform package system tasks
+  ansible.builtin.include_tasks: "{{ ansible_facts['pkg_mgr'] }}_packages.yml"
+  tags:
+    - package_manager
+    - install

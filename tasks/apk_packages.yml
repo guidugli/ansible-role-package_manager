@@ -1,32 +1,36 @@
 ---
-##
-# This file provides all tasks related to package management.
-# It starts by setting up some configuration on the package
-# management system itself.
-# It includes updating packages to latest version as well as
-# installing and removing software.
-##
-
-- name: Update cache
+- name: Update apk cache
   community.general.apk:
-    update_cache: yes
+    update_cache: true
   changed_when: false
+  tags:
+    - package_manager
+    - install
 
-- name: Update all packages
+- name: Update all apk packages
   community.general.apk:
-    upgrade: yes
+    upgrade: true
     available: "{{ pm_apk_upgrade_available }}"
   when: pm_update_system
   notify: Reboot
+  tags:
+    - package_manager
+    - install
 
-- name: Install packages
+- name: Install apk packages
   community.general.apk:
     name: "{{ pm_install_packages }}"
     state: present
-  when: pm_install_packages is defined and pm_install_packages | length > 0
+  when: pm_install_packages | length > 0
+  tags:
+    - package_manager
+    - install
 
-- name: Delete packages
+- name: Delete apk packages
   community.general.apk:
     name: "{{ pm_remove_packages }}"
     state: absent
-  when: pm_remove_packages is defined and pm_remove_packages | length > 0
+  when: pm_remove_packages | length > 0
+  tags:
+    - package_manager
+    - install

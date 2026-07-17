@@ -1,66 +1,82 @@
 ---
-##
-# This file provides all tasks related to package management.
-# It starts by setting up some configuration on the package
-# management system itself.
-# It includes updating packages to latest version as well as
-# installing and removing software.
-##
-
-# Perform gpgcheck settings validation and other common
-# validations for yum and dnf
 - name: Import tasks to perform common dnf/yum verification
   ansible.builtin.include_tasks: redhat_common.yml
+  tags:
+    - package_manager
+    - config
 
-- name: Install dnf-utils
+- name: Install package manager utilities
   ansible.builtin.dnf:
     name: dnf-utils
     state: present
+  tags:
+    - package_manager
+    - install
 
-# Update the system with security packages using the system's package manager
-# Only update the system if the 'update_system' variable is set to true
 - name: Update packages
   ansible.builtin.dnf:
     name: "*"
     state: latest
     security: "{{ pm_security_only }}"
   when: pm_update_system
+  tags:
+    - package_manager
+    - install
 
 - name: Install packages
   ansible.builtin.dnf:
     name: "{{ pm_install_packages }}"
     state: present
-  when: pm_install_packages is defined and pm_install_packages | length > 0
+  when: pm_install_packages | length > 0
+  tags:
+    - package_manager
+    - install
 
 - name: Delete unused packages
   ansible.builtin.dnf:
     name: "{{ pm_remove_packages }}"
     state: absent
-  when: pm_remove_packages is defined and pm_remove_packages | length > 0
+  when: pm_remove_packages | length > 0
+  tags:
+    - package_manager
+    - install
 
 - name: Autoremove unneeded packages installed as dependencies
   ansible.builtin.dnf:
     autoremove: "{{ pm_autoremove }}"
+  tags:
+    - package_manager
+    - install
 
 - name: Check if system needs a reboot
-  ansible.builtin.command: "needs-restarting -r"
+  ansible.builtin.command:
+    cmd: needs-restarting -r
   failed_when: false
   changed_when: false
   register: pkgmgr_boot_required
+  tags:
+    - package_manager
+    - validate
 
-- name: Reboot Status
+- name: Display reboot status
   ansible.builtin.debug:
     msg: "System {{ 'needs' if pkgmgr_boot_required.rc != 0 else 'does not need' }} rebooting"
+  tags:
+    - package_manager
+    - validate
 
 - name: Reboot system
   ansible.builtin.reboot:
-    msg: "Reboot initiated by Ansible for updates"
+    msg: Reboot initiated by Ansible for updates
     connect_timeout: 5
     reboot_timeout: 300
     pre_reboot_delay: 0
     post_reboot_delay: 30
     test_command: uptime
   when:
-    - pm_reboot_after_update | bool
+    - pm_reboot_after_update
     - pkgmgr_boot_required.rc != 0
-    - ansible_connection != "docker"
+    - ansible_connection not in ['docker', 'containers.podman.podman']
+  tags:
+    - package_manager
+    - service

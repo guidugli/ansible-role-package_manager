@@ -12,7 +12,7 @@
         state: started
       loop: "{{ groups.get('molecule', []) }}"
 
-    - name: Write Molecule instance config (enables molecule list/login)
+    - name: Write Molecule instance config
       vars:
         instance_config_path: "{{ lookup('env', 'MOLECULE_INSTANCE_CONFIG') }}"
       ansible.builtin.copy:

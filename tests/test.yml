@@ -1,6 +1,5 @@
 ---
 - name: Test Playbook
   hosts: localhost
-  remote_user: root
   roles:
     - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"

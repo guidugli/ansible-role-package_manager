@@ -1,11 +1,10 @@
 ---
-- name: Shared prepare (bootstrap python + essentials)
+- name: Shared prepare
   hosts: all
   gather_facts: false
   become: false
-
   tasks:
-    - name: Detect OS via /etc/os-release (works without python)
+    - name: Detect OS via /etc/os-release
       ansible.builtin.raw: cat /etc/os-release
       register: osr
       changed_when: false

@@ -1,105 +1,98 @@
-Ansible Role: package_manager
-=========
+[![CI](https://github.com/guidugli/ansible-role-package_manager/actions/workflows/CI.yml/badge.svg)](https://github.com/guidugli/ansible-role-package_manager/actions/workflows/CI.yml)
+[![Release](https://img.shields.io/github/v/release/guidugli/ansible-role-package_manager?display_name=tag&sort=semver)](https://github.com/guidugli/ansible-role-package_manager/releases)
+[![Galaxy](https://img.shields.io/badge/galaxy-guidugli.package_manager-blue.svg)](https://galaxy.ansible.com/ui/standalone/roles/guidugli/package_manager/)
+[![License](https://img.shields.io/github/license/guidugli/ansible-role-package_manager)](LICENSE)
 
-An Ansible Role that configure package management software on RHEL/CentOS, Fedora and Debian/Ubuntu. Also install and remove software according to configuration.
+# Ansible Role: package_manager
 
-Requirements
-------------
+`guidugli.package_manager` configures package-management behavior and manages package updates, installs, removals,
+cleanup, GPG-check enforcement, and reboot signaling across supported Linux package managers.
 
-No requirements.
+## Requirements
 
-Role Variables
---------------
+- Ansible Core 2.17 for the included development and Molecule toolchain.
+- Supported package managers: `apt`, `dnf`, `dnf5`, `yum`, `apk`, `pacman`, and `zypper`.
+- Collections from `requirements.yml`:
+  - `containers.podman >= 1.10.0` for Molecule container scenarios.
+  - `community.general >= 9.0.0` for non-core package manager modules.
+- Host privilege is controlled by the playbook or automation platform, not by this role.
 
-**Available variables are listed below, along with default values (see defaults/main.yml):**
+## Variables
 
-    pm_update_system: yes
+All role inputs are defined in `defaults/main.yml` and mirrored in `meta/argument_specs.yml`.
 
-Update packages to latest version whenever this role is executed
+| Variable | Type | Default | Description |
+| --- | --- | --- | --- |
+| `pm_update_system` | bool | `true` | Updates installed packages using the platform package manager. |
+| `pm_apt_upgrade_command` | str | `dist` | Upgrade mode for APT hosts. Valid values are `dist`, `full`, `safe`, and `yes`. |
+| `pm_apk_upgrade_available` | bool | `false` | Allows APK to replace or downgrade packages when the installed version is unavailable. |
+| `pm_cache_valid_time` | int | `3600` | Package metadata cache validity in seconds for package managers that support it. |
+| `pm_security_only` | bool | `false` | Applies security updates only on RedHat-family package-manager tasks. |
+| `pm_autoremove` | bool | `true` | Removes unneeded dependency packages where supported by the package manager. |
+| `pm_purge` | bool | `false` | Purges configuration files when packages are removed on Debian-family systems. |
+| `pm_gpgcheck` | bool | `true` | Enforces `gpgcheck = 1` in RedHat-family package manager and repository configuration. |
+| `pm_disable_rhnsd` | bool | `true` | Stops and disables `rhnsd` on supported RedHat-family hosts when the service task runs. |
+| `pm_gpgcheck_excludes` | list(str) | `[]` | Repository files excluded from RedHat-family GPG-check enforcement. |
+| `pm_install_packages` | list(str) | `[]` | Packages to install. |
+| `pm_remove_packages` | list(str) | `[]` | Packages to remove. |
+| `pm_reboot_after_update` | bool | `false` | Reboots when the platform indicates a reboot is required after updates. |
 
-    pm_apt_upgrade_command: dist
+Internal variables are stored in `vars/main.yml`:
 
-For APT only: can be dist, full, yes or safe
+| Variable | Description |
+| --- | --- |
+| `int_default_value` | Internal sentinel value used for integer validation. |
+| `default_packages` | Platform-specific package install and removal maps. Review before using in production. |
+| `pkgmgr_redhat_conf` | RedHat-family package manager configuration file path. |
 
-    pm_apk_upgrade_available: no
+## Example Playbook
 
-If set to yes, during upgrade, prefer replacing or downgrading packages (instead of holding them) if the currently installed package is no longer available from any repository.
+Package-management changes usually require elevated privileges on real hosts. Apply privilege at the play level:
 
-pm_cache_valid_time: 3600
+```yaml
+---
+- name: Manage baseline packages
+  hosts: servers
+  become: true
+  roles:
+    - role: guidugli.package_manager
+      vars:
+        pm_update_system: true
+        pm_security_only: false
+        pm_install_packages:
+          - vim
+          - curl
+        pm_remove_packages: []
+        pm_reboot_after_update: false
+```
 
-Update cache if older than this variable value (in seconds)
+## Molecule Testing
 
-    pm_security_only: no
+The role is aligned to shared Molecule playbooks:
 
-Apply only security updates (RedHat family only)
+- `molecule/shared/converge.yml` applies the role to every scenario target.
+- `molecule/shared/verify.yml` collects package facts and validates that package facts are available.
+- `molecule/default` exercises containerized distro targets.
+- `molecule/systemd` prepares systemd-capable containers for service-related coverage.
 
-    pm_autoremove: yes
+Run locally with:
 
-Automatically remove unneeded packages installed as dependencies
+```bash
+molecule test -s default
+molecule test -s systemd
+```
 
-    pm_purge: no
+## Execution Notes
 
-Force purging configuration files if package is removed (Debian family only)
+### Privilege model
 
-    pm_gpgcheck: yes
+This role does not set `become`, `become_user`, or `become_method`. Package, service, repository, reboot, and
+filesystem operations are privileged on most real systems, so callers must set `become: true` externally when required.
+Containerized Molecule targets run as root by default and do not require role-level privilege escalation.
 
-Make all repositories to validate gpg signature (RedHat family only)
+### Container and systemd behavior
 
-    pm_disable_rhnsd: yes
-
-Do not disable the service if you plan on connecting to a Sattelite ((RedHat family only)
-
-    pm_install_packages: "{{ default_packages['install']['COMMON'] |
-                        default([], true) + default_packages['install'][ansible_os_family] | default([], true) }}"
-
-Packages to install. Default is no packages to install. Update this variable to specify the desired packages to install.
-
-    pm_remove_packages: "{{ default_packages['remove']['COMMON'] |
-                        default([], true) + default_packages['remove'][ansible_os_family] | default([], true) }}"
-
-Packages to remove: default list is based on CIS recommendations of software to uninstall if not used. Check `vars/main.yml` for the list of packages of each operating system. By default it will remove specialized software that may run on a server like samba, nfs, http server, etc, since most installation don´t use them, and they may act as a vector for vulnerabilities. Ensure you review and adjust the list on each system.
-
-    pm_reboot_after_update: no
-
-Should the system be rebooted after update?
-
-    #  pm_gpgcheck_excludes:
-    #    - /etc/yum.repos.d/virtio-win
-
-RedHat family only: repositories to skip gpg check. Some repositories (like virtio-win) may not have a gpg signature available. Use this option to disable gpg check of the problematic repository.
-
-**The variables listed below do not need to be changed for targeted systems (see vars/main.yml):**
-
-    int_default_value: -1
-
-Internal variable that define the default value of undefined integers. This value should not match any valid value of integer variables. Do not change it unless you know the internals of this role.
-
-    default_packages:
-
-This is a complex structure that defines the default packages to be installed and removed based on the operating system type and version.
-
-    pkgmgr_redhat_conf:
-
-Configuration file location and name for RedHat based systems.
-
-Dependencies
-------------
-
-No dependencies.
-
-Example Playbook
-----------------
-
-    - hosts: servers
-      roles:
-         - { role: guidugli.package_manager }
-
-License
--------
-
-MIT / BSD
-
-Author Information
-------------------
-
-This role was created in 2020 by Carlos Guidugli.
+The role avoids forcing service-manager behavior. Reboot tasks are skipped for Docker and Podman connection contexts.
+The `rhnsd` task uses the service module and may require a functional service manager; the systemd Molecule scenario
+exists to exercise service-manager-sensitive behavior. If a target does not provide `rhnsd` or a compatible service
+manager, the task is non-fatal by design.

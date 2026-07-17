@@ -1,66 +1,107 @@
 ---
-##
-# This file provides all tasks related to package management.
-# It starts by setting up some configuration on the package
-# management system itself.
-# It includes updating packages to latest version as well as
-# installing and removing software.
-##
 
-- name: Refresh apt cache
+- name: Inspect apt package index files
+  ansible.builtin.find:
+    paths: /var/lib/apt/lists
+    patterns:
+      - '*_Packages'
+      - '*_Packages.lz4'
+      - '*_Packages.xz'
+      - '*_InRelease'
+      - 'Release'
+    file_type: file
+  register: pkgmgr_apt_index_files
+  failed_when: false
+  tags:
+    - package_manager
+    - validate
+
+- name: Refresh apt cache when package indexes are missing
   ansible.builtin.apt:
     update_cache: true
-  when: ansible_facts['pkg_mgr'] == 'apt'
   changed_when: false
+  when: pkgmgr_apt_index_files.files | default([]) | length == 0
   tags:
     - package_manager
     - install
 
-# Update the system with security packages using the system's package manager
-# Only update the system if the 'update_system' variable is set to true
+- name: Refresh apt cache when package indexes are present
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ pm_cache_valid_time }}"
+  changed_when: false
+  when: pkgmgr_apt_index_files.files | default([]) | length > 0
+  tags:
+    - package_manager
+    - install
+
+- name: Install GNUPG2 package
+  ansible.builtin.apt:
+    name: gnupg
+    state: present
+  tags:
+    - package_manager
+    - install
+
 - name: Update packages
   ansible.builtin.apt:
     upgrade: "{{ pm_apt_upgrade_command }}"
   when: pm_update_system
+  tags:
+    - package_manager
+    - install
 
 - name: Install packages
   ansible.builtin.apt:
     name: "{{ pm_install_packages }}"
     state: present
-  when: pm_install_packages is defined and pm_install_packages | length > 0
-
-- name: Install GNUPG2 package so apt-key command works
-  ansible.builtin.apt:
-    name: gnupg2
-    state: present
+  when: pm_install_packages | length > 0
+  tags:
+    - package_manager
+    - install
 
 - name: Delete unused packages
   ansible.builtin.apt:
     name: "{{ pm_remove_packages }}"
     state: absent
     purge: "{{ pm_purge }}"
-  when: pm_remove_packages is defined and pm_remove_packages | length > 0
+  when: pm_remove_packages | length > 0
+  tags:
+    - package_manager
+    - install
 
 - name: Autoremove unneeded packages installed as dependencies
   ansible.builtin.apt:
-    autoremove: yes
+    autoremove: true
   when: pm_autoremove
+  tags:
+    - package_manager
+    - install
 
-- name: Perform autoclean (remove useless files from cache)
+- name: Perform autoclean
   ansible.builtin.apt:
-    autoclean: yes
+    autoclean: true
+  tags:
+    - package_manager
+    - install
 
-- name: Run command to get apt package repositories
-  ansible.builtin.command: "/usr/bin/apt-cache policy"
+- name: Get apt package repositories
+  ansible.builtin.command:
+    cmd: /usr/bin/apt-cache policy
   register: pkgmgr_apt_package_repos
   changed_when: false
-  failed_when: pkgmgr_apt_package_repos.rc != 0
+  tags:
+    - package_manager
+    - validate
 
-- name: Display package manager repositories (for manual review)
+- name: Display package manager repositories
   ansible.builtin.debug:
     msg:
       - "List of configured apt repositories (apt-cache policy):"
       - "{{ pkgmgr_apt_package_repos.stdout_lines }}"
+  tags:
+    - package_manager
+    - validate
 
 - name: Find APT keyrings
   ansible.builtin.find:
@@ -73,36 +114,49 @@
       - "*.asc"
   register: apt_keyrings
   failed_when: false
+  tags:
+    - package_manager
+    - validate
 
-- name: Display key fingerprints (for manual review)
+- name: Display key fingerprints for manual review
   ansible.builtin.command:
     cmd: "gpg --show-keys --with-fingerprint {{ item.path }}"
   loop: "{{ apt_keyrings.files }}"
   register: key_details
   changed_when: false
   failed_when: false
+  tags:
+    - package_manager
+    - validate
 
-# If file exists the return code is zero
 - name: Check if reboot is required
-  ansible.builtin.raw: "test -e /var/run/reboot-required"
-  failed_when: false
-  changed_when: false
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
   register: pkgmgr_boot_required
+  tags:
+    - package_manager
+    - validate
 
 - name: System reboot message
   ansible.builtin.debug:
-    msg: "System needs rebooting"
-  when: pkgmgr_boot_required.rc == 0
+    msg: System needs rebooting
+  when: pkgmgr_boot_required.stat.exists
+  tags:
+    - package_manager
+    - validate
 
 - name: Reboot system
   ansible.builtin.reboot:
-    msg: "Reboot initiated by Ansible for updates"
+    msg: Reboot initiated by Ansible for updates
     connect_timeout: 5
     reboot_timeout: 300
     pre_reboot_delay: 0
     post_reboot_delay: 30
     test_command: uptime
   when:
-    - pm_reboot_after_update | bool
-    - pkgmgr_boot_required.rc == 0
-    - ansible_connection != "docker"
+    - pm_reboot_after_update
+    - pkgmgr_boot_required.stat.exists
+    - ansible_connection not in ['docker', 'containers.podman.podman']
+  tags:
+    - package_manager
+    - service
