@@ -1,5 +1,4 @@
 ---
-
 - name: Inspect apt package index files
   ansible.builtin.find:
     paths: /var/lib/apt/lists
@@ -31,15 +30,6 @@
     cache_valid_time: "{{ pm_cache_valid_time }}"
   changed_when: false
   when: pkgmgr_apt_index_files.files | default([]) | length > 0
-  tags:
-    - package_manager
-    - install
-
-- name: Install GNUPG2 package
-  ansible.builtin.apt:
-    name: gnupg
-    state: present
-  failed_when: false
   tags:
     - package_manager
     - install

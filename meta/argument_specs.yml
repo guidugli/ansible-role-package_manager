@@ -51,12 +51,12 @@ argument_specs:
         type: list
         elements: str
         default: []
-        description: Packages to install. Defaults are derived by platform from vars/main.yml.
+        description: Packages to install. Package names are passed directly to the detected package manager.
       pm_remove_packages:
         type: list
         elements: str
         default: []
-        description: Packages to remove. Defaults are derived by platform from vars/main.yml.
+        description: Packages to remove. Package names are passed directly to the detected package manager.
       pm_reboot_after_update:
         type: bool
         default: false
