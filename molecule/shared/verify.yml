@@ -3,6 +3,18 @@
   hosts: all
   gather_facts: true
   tasks:
+    - name: Verify supported package manager was detected
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['pkg_mgr'] is defined
+          - ansible_facts['pkg_mgr'] in ['apt', 'dnf', 'dnf5', 'yum', 'apk', 'pacman', 'zypper']
+        fail_msg: >-
+          Unsupported or undetected package manager: {{ ansible_facts['pkg_mgr'] | default('undefined') }}.
+        quiet: true
+      tags:
+        - package_manager
+        - validate
+
     - name: Gather package facts
       ansible.builtin.package_facts:
         manager: auto
@@ -13,9 +25,82 @@
     - name: Verify package facts were collected
       ansible.builtin.assert:
         that:
-          - ansible_facts.packages is mapping
+          - ansible_facts['packages'] is defined
+          - ansible_facts['packages'] is mapping
         fail_msg: Package facts were not collected.
         quiet: true
+      tags:
+        - package_manager
+        - validate
+
+    - name: Inspect APT package indexes
+      ansible.builtin.find:
+        paths: /var/lib/apt/lists
+        patterns:
+          - '*_Packages'
+          - '*_Packages.lz4'
+          - '*_Packages.xz'
+          - '*_InRelease'
+          - 'Release'
+        file_type: file
+      register: pkgmgr_verify_apt_index_files
+      failed_when: false
+      when: ansible_facts['pkg_mgr'] == 'apt'
+      tags:
+        - package_manager
+        - validate
+
+    - name: Verify APT package indexes are available
+      ansible.builtin.assert:
+        that:
+          - pkgmgr_verify_apt_index_files.files | default([]) | length > 0
+        fail_msg: >-
+          APT package indexes are missing after role execution. The role should refresh package metadata when
+          /var/lib/apt/lists is empty in minimal Debian or Ubuntu containers.
+        quiet: true
+      when: ansible_facts['pkg_mgr'] == 'apt'
+      tags:
+        - package_manager
+        - validate
+
+    - name: Check optional gpg command availability on APT systems
+      ansible.builtin.command:
+        cmd: gpg --version
+      register: pkgmgr_verify_gpg_command
+      changed_when: false
+      failed_when: false
+      when: ansible_facts['pkg_mgr'] == 'apt'
+      tags:
+        - package_manager
+        - validate
+
+    - name: Report optional GPG fingerprint capability
+      ansible.builtin.debug:
+        msg: >-
+          Optional GPG fingerprint review is {{ 'available' if pkgmgr_verify_gpg_command.rc == 0 else 'not available' }}
+          on this APT target.
+      when: ansible_facts['pkg_mgr'] == 'apt'
+      changed_when: false
+      tags:
+        - package_manager
+        - validate
+
+    - name: Inspect RedHat-family package manager configuration
+      ansible.builtin.stat:
+        path: "{{ '/etc/yum.conf' if ansible_facts['pkg_mgr'] == 'yum' else '/etc/dnf/dnf.conf' }}"
+      register: pkgmgr_verify_redhat_conf
+      when: ansible_facts['pkg_mgr'] in ['dnf', 'dnf5', 'yum']
+      tags:
+        - package_manager
+        - validate
+
+    - name: Verify RedHat-family package manager configuration exists
+      ansible.builtin.assert:
+        that:
+          - pkgmgr_verify_redhat_conf.stat.exists
+        fail_msg: RedHat-family package manager configuration file was not found.
+        quiet: true
+      when: ansible_facts['pkg_mgr'] in ['dnf', 'dnf5', 'yum']
       tags:
         - package_manager
         - validate

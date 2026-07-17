@@ -39,6 +39,7 @@
   ansible.builtin.apt:
     name: gnupg
     state: present
+  failed_when: false
   tags:
     - package_manager
     - install
@@ -118,6 +119,26 @@
     - package_manager
     - validate
 
+- name: Detect gpg command for key fingerprint review
+  ansible.builtin.command:
+    cmd: gpg --version
+  register: pkgmgr_gpg_command
+  changed_when: false
+  failed_when: false
+  tags:
+    - package_manager
+    - validate
+
+- name: Report skipped GPG key fingerprint review
+  ansible.builtin.debug:
+    msg: >-
+      GPG key fingerprint review was skipped because the gpg command is not installed in this image.
+      Install gnupg externally or include it in pm_install_packages when fingerprint inspection is required.
+  when: pkgmgr_gpg_command.rc != 0
+  tags:
+    - package_manager
+    - validate
+
 - name: Display key fingerprints for manual review
   ansible.builtin.command:
     cmd: "gpg --show-keys --with-fingerprint {{ item.path }}"
@@ -125,6 +146,7 @@
   register: key_details
   changed_when: false
   failed_when: false
+  when: pkgmgr_gpg_command.rc == 0
   tags:
     - package_manager
     - validate
